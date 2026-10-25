@@ -1295,7 +1295,9 @@ var GraphControlsSection = class {
     });
     const plusIcon = addGroupQuickBtn.createSpan();
     (0, import_obsidian2.setIcon)(plusIcon, "plus");
-    addGroupQuickBtn.createSpan({ text: strings.addGroupBtn });
+    addGroupQuickBtn.createSpan({
+      text: strings.addGroupBtn.replace(/^\+\s*/, "")
+    });
     addGroupQuickBtn.addEventListener(
       "click",
       () => this.cb.onCreateGroup("organic")
@@ -1306,7 +1308,9 @@ var GraphControlsSection = class {
     });
     const frameIcon = addMiroQuickBtn.createSpan();
     (0, import_obsidian2.setIcon)(frameIcon, "layout-grid");
-    addMiroQuickBtn.createSpan({ text: strings.addMiroFrameBtn });
+    addMiroQuickBtn.createSpan({
+      text: strings.addMiroFrameBtn.replace(/^\+\s*/, "")
+    });
     addMiroQuickBtn.addEventListener(
       "click",
       () => this.cb.onCreateGroup("miro-pinned")
@@ -1473,7 +1477,7 @@ var GraphControlsSection = class {
       const info = item.createDiv({ cls: "gmg-group-info" });
       info.addEventListener("click", () => this.cb.onEditGroup(grp));
       const nameLine = info.createDiv({ cls: "gmg-group-name-line" });
-      nameLine.createSpan({ text: grp.name });
+      nameLine.createSpan({ cls: "gmg-group-title-text", text: grp.name });
       const modeTag = nameLine.createSpan({
         cls: "gmg-mini-tag",
         text: strings.modeShort(mode),
@@ -1861,7 +1865,10 @@ var GraphViewController = class {
     );
     this.badgeLayerEl = document.createElement("div");
     this.badgeLayerEl.className = "gmg-badge-layer";
-    canvasParent.appendChild(this.badgeLayerEl);
+    canvasParent.insertBefore(
+      this.badgeLayerEl,
+      this.overlayCanvas.nextSibling
+    );
     const graphControlsEl = this.engine?.controlsEl || this.view.contentEl.querySelector(".graph-controls");
     this.controlsSection = new GraphControlsSection(
       graphControlsEl,
@@ -3578,29 +3585,40 @@ var GraphViewController = class {
   focusWorldRect(wx, wy, ww, wh) {
     const r = this.renderer;
     if (!r) return;
+    if ("autoScale" in r) {
+      r.autoScale = false;
+    }
+    if ("panvX" in r) r.panvX = 0;
+    if ("panvY" in r) r.panvY = 0;
     const win = r.interactiveEl?.win || window;
     const dpr = r.px?.renderer?.resolution || win.devicePixelRatio || 1;
-    const viewW = (r.interactiveEl?.clientWidth || 900) * dpr;
-    const viewH = (r.interactiveEl?.clientHeight || 650) * dpr;
-    const padFactor = 1.35;
+    const rawCssW = r.interactiveEl?.clientWidth || 900;
+    const rawCssH = r.interactiveEl?.clientHeight || 650;
+    const controlsEl = this.view.contentEl.querySelector(
+      ".graph-controls"
+    );
+    const controlsCssW = controlsEl && !controlsEl.classList.contains("is-close") ? controlsEl.offsetWidth + 16 : 0;
+    const usableW = Math.max(300, rawCssW - controlsCssW) * dpr;
+    const usableH = Math.max(240, rawCssH - 56) * dpr;
+    const padFactor = 1.24;
     const desiredScale = clamp(
       Math.min(
-        viewW / Math.max(120, ww * padFactor),
-        viewH / Math.max(120, wh * padFactor)
+        usableW / Math.max(120, ww * padFactor),
+        usableH / Math.max(120, wh * padFactor)
       ),
-      0.2,
-      2.2
+      0.18 * dpr,
+      2.2 * dpr
     );
     const centerX = wx + ww / 2;
     const centerY = wy + wh / 2;
-    const targetPanX = viewW / 2 - centerX * desiredScale;
-    const targetPanY = viewH / 2 - centerY * desiredScale;
+    const targetPanX = usableW / 2 - centerX * desiredScale;
+    const targetPanY = usableH / 2 - centerY * desiredScale;
+    if (typeof r.setScale === "function") r.setScale(desiredScale);
     r.scale = desiredScale;
     if (typeof r.targetScale === "number") r.targetScale = desiredScale;
+    if (typeof r.setPan === "function") r.setPan(targetPanX, targetPanY);
     r.panX = targetPanX;
     r.panY = targetPanY;
-    if (typeof r.setScale === "function") r.setScale(desiredScale);
-    if (typeof r.setPan === "function") r.setPan(targetPanX, targetPanY);
     r.changed();
   }
   /* =========================================================================
@@ -6082,7 +6100,7 @@ var INLINE_PLUGIN_STYLES = `
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 2;
+  z-index: 0;
 }
 .gmg-badge-layer {
   position: absolute;
@@ -6091,7 +6109,7 @@ var INLINE_PLUGIN_STYLES = `
   height: 100%;
   pointer-events: none;
   overflow: hidden;
-  z-index: 4;
+  z-index: 0;
 }
 .gmg-group-badge {
   position: absolute;
@@ -6402,6 +6420,11 @@ var INLINE_PLUGIN_STYLES = `
   align-items: center;
   gap: 5px;
   font-weight: 600;
+  min-width: 0;
+}
+.gmg-group-title-text {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6420,6 +6443,8 @@ var INLINE_PLUGIN_STYLES = `
   background: var(--background-modifier-hover);
   color: var(--text-muted);
   cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .gmg-mini-tag:hover {
   background: var(--interactive-accent);

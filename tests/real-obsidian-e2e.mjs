@@ -301,16 +301,31 @@ try {
   });
 
   await page.setViewportSize({ width: 1600, height: 960 });
-  await sleep(2000);
+  await sleep(2500);
 
-  // Dismiss any trust/welcome modals and forcefully enable community plugins + our plugin!
+  // Click "Trust author and enable plugins" if Obsidian shows the first-open vault trust dialog!
+  async function dismissObsidianStartupModals() {
+    await page.evaluate(() => {
+      const buttons = Array.from(document.querySelectorAll(".modal-container button"));
+      for (const b of buttons) {
+        const txt = (b.textContent || "").toLowerCase();
+        if (txt.includes("trust author") || txt.includes("enable plugins") || txt.includes("довер")) {
+          b.click();
+        }
+      }
+      document
+        .querySelectorAll(".modal-container .modal-close-button")
+        .forEach((b) => b.click());
+    });
+  }
+
+  await dismissObsidianStartupModals();
+  await sleep(1000);
+  await dismissObsidianStartupModals();
+
+  // Forcefully ensure community plugins + our plugin are enabled!
   const initInfo = await page.evaluate(async () => {
     const app = window.app;
-    // Close any startup modal if open
-    document
-      .querySelectorAll(".modal-close-button")
-      .forEach((b) => b.click());
-
     if (app.plugins) {
       if (typeof app.plugins.setEnable === "function") {
         await app.plugins.setEnable(true);
@@ -382,6 +397,8 @@ try {
 
   // Let real Obsidian `sim.js` worker + our magnetic physics settle for 5 seconds!
   await sleep(5000);
+  await dismissObsidianStartupModals();
+  await sleep(300);
 
   report.phase1Organic = await page.evaluate(() => {
     const leaf = window.app.workspace.getLeavesOfType("graph")[0];
@@ -590,14 +607,19 @@ try {
   });
   const arrangeJson = JSON.parse(arrangeRes.content[0].text);
 
-  // Frame the 3 Kanban Miro columns on real Obsidian's Graph View camera
-  await page.evaluate(() => {
+  await sleep(4500);
+  // Frame all 3 Kanban Miro columns + dynamic core cluster cleanly on camera!
+  await page.evaluate((frames) => {
     const plugin = window.app.plugins.plugins["graph-magnetic-groups"];
     const ctrl = Array.from(plugin.controllers.values())[0];
-    ctrl?.focusWorldRect(-620, -380, 1240, 760);
-  });
-
-  await sleep(4500);
+    if (!ctrl || !frames || !frames.length) return;
+    let minX = Math.min(...frames.map((f) => f.frameX));
+    let maxX = Math.max(...frames.map((f) => f.frameX + f.frameW));
+    let minY = Math.min(...frames.map((f) => f.frameY)) - 140;
+    let maxY = Math.max(...frames.map((f) => f.frameY + f.frameH)) + 160;
+    ctrl.focusWorldRect(minX, minY, maxX - minX, maxY - minY);
+  }, arrangeJson.frames);
+  await sleep(600);
   await page.screenshot({
     path: path.join(outDir, "04-real-obsidian-arranged-via-cloudflare-mcp.png"),
   });

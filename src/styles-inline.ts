@@ -5,7 +5,7 @@ export const INLINE_PLUGIN_STYLES = `
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 2;
+  z-index: 0;
 }
 .gmg-badge-layer {
   position: absolute;
@@ -14,7 +14,7 @@ export const INLINE_PLUGIN_STYLES = `
   height: 100%;
   pointer-events: none;
   overflow: hidden;
-  z-index: 4;
+  z-index: 0;
 }
 .gmg-group-badge {
   position: absolute;
@@ -325,6 +325,11 @@ export const INLINE_PLUGIN_STYLES = `
   align-items: center;
   gap: 5px;
   font-weight: 600;
+  min-width: 0;
+}
+.gmg-group-title-text {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -343,6 +348,8 @@ export const INLINE_PLUGIN_STYLES = `
   background: var(--background-modifier-hover);
   color: var(--text-muted);
   cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .gmg-mini-tag:hover {
   background: var(--interactive-accent);

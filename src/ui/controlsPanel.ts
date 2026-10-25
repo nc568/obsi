@@ -93,7 +93,9 @@ export class GraphControlsSection {
     });
     const plusIcon = addGroupQuickBtn.createSpan();
     setIcon(plusIcon, "plus");
-    addGroupQuickBtn.createSpan({ text: strings.addGroupBtn });
+    addGroupQuickBtn.createSpan({
+      text: strings.addGroupBtn.replace(/^\+\s*/, ""),
+    });
     addGroupQuickBtn.addEventListener("click", () =>
       this.cb.onCreateGroup("organic")
     );
@@ -104,7 +106,9 @@ export class GraphControlsSection {
     });
     const frameIcon = addMiroQuickBtn.createSpan();
     setIcon(frameIcon, "layout-grid");
-    addMiroQuickBtn.createSpan({ text: strings.addMiroFrameBtn });
+    addMiroQuickBtn.createSpan({
+      text: strings.addMiroFrameBtn.replace(/^\+\s*/, ""),
+    });
     addMiroQuickBtn.addEventListener("click", () =>
       this.cb.onCreateGroup("miro-pinned")
     );
@@ -291,7 +295,7 @@ export class GraphControlsSection {
       info.addEventListener("click", () => this.cb.onEditGroup(grp));
 
       const nameLine = info.createDiv({ cls: "gmg-group-name-line" });
-      nameLine.createSpan({ text: grp.name });
+      nameLine.createSpan({ cls: "gmg-group-title-text", text: grp.name });
 
       const modeTag = nameLine.createSpan({
         cls: "gmg-mini-tag",

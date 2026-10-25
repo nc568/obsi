@@ -136,10 +136,13 @@ export class GraphViewController {
       renderer.interactiveEl.nextSibling
     );
 
-    // 2. Create interactive layer for draggable organic pills & Miro Frame headers + resize handles
+    // 2. Insert badge layer right after overlayCanvas (before .graph-controls so .graph-controls always sits cleanly above canvas badges!)
     this.badgeLayerEl = document.createElement("div");
     this.badgeLayerEl.className = "gmg-badge-layer";
-    canvasParent.appendChild(this.badgeLayerEl);
+    canvasParent.insertBefore(
+      this.badgeLayerEl,
+      this.overlayCanvas.nextSibling
+    );
 
     // 3. Inject section into Obsidian's native .graph-controls panel + floating bar
     const graphControlsEl =
@@ -2369,32 +2372,60 @@ export class GraphViewController {
   }
 
   public focusWorldRect(wx: number, wy: number, ww: number, wh: number): void {
-    const r = this.renderer;
+    const r = this.renderer as
+      | (InternalGraphRenderer & {
+          autoScale?: boolean;
+          panvX?: number;
+          panvY?: number;
+        })
+      | undefined;
     if (!r) return;
+
+    // Disable Obsidian's initial autoScale loop so our explicit camera framing sticks!
+    if ("autoScale" in r) {
+      r.autoScale = false;
+    }
+    if ("panvX" in r) r.panvX = 0;
+    if ("panvY" in r) r.panvY = 0;
+
     const win = r.interactiveEl?.win || window;
     const dpr = r.px?.renderer?.resolution || win.devicePixelRatio || 1;
-    const viewW = (r.interactiveEl?.clientWidth || 900) * dpr;
-    const viewH = (r.interactiveEl?.clientHeight || 650) * dpr;
-    const padFactor = 1.35;
+    const rawCssW = r.interactiveEl?.clientWidth || 900;
+    const rawCssH = r.interactiveEl?.clientHeight || 650;
+
+    // Account for open .graph-controls panel on the right so boards center in visible canvas space
+    const controlsEl = this.view.contentEl.querySelector(
+      ".graph-controls"
+    ) as HTMLElement | null;
+    const controlsCssW =
+      controlsEl && !controlsEl.classList.contains("is-close")
+        ? controlsEl.offsetWidth + 16
+        : 0;
+
+    const usableW = Math.max(300, rawCssW - controlsCssW) * dpr;
+    const usableH = Math.max(240, rawCssH - 56) * dpr;
+    const padFactor = 1.24;
+
     const desiredScale = clamp(
       Math.min(
-        viewW / Math.max(120, ww * padFactor),
-        viewH / Math.max(120, wh * padFactor)
+        usableW / Math.max(120, ww * padFactor),
+        usableH / Math.max(120, wh * padFactor)
       ),
-      0.2,
-      2.2
+      0.18 * dpr,
+      2.2 * dpr
     );
+
     const centerX = wx + ww / 2;
     const centerY = wy + wh / 2;
-    const targetPanX = viewW / 2 - centerX * desiredScale;
-    const targetPanY = viewH / 2 - centerY * desiredScale;
+    const targetPanX = usableW / 2 - centerX * desiredScale;
+    const targetPanY = usableH / 2 - centerY * desiredScale;
 
+    if (typeof r.setScale === "function") r.setScale(desiredScale);
     r.scale = desiredScale;
     if (typeof r.targetScale === "number") r.targetScale = desiredScale;
+    if (typeof r.setPan === "function") r.setPan(targetPanX, targetPanY);
     r.panX = targetPanX;
     r.panY = targetPanY;
-    if (typeof r.setScale === "function") r.setScale(desiredScale);
-    if (typeof r.setPan === "function") r.setPan(targetPanX, targetPanY);
     r.changed();
   }
 
