@@ -528,10 +528,35 @@ try {
   // Open Obsidian's Settings dialog to our plugin's tab and capture real UI screenshot!
   await page.evaluate(() => {
     const app = window.app;
-    app.setting.open();
-    app.setting.openTabById("graph-magnetic-groups");
+    if (app.commands?.executeCommandById) {
+      app.commands.executeCommandById("app:open-settings");
+    }
+    if (app.setting?.open) {
+      app.setting.open();
+    }
   });
-  await sleep(1200);
+  await sleep(600);
+  const modalOpened = await page.evaluate(() => Boolean(document.querySelector(".vertical-tab-header")));
+  if (!modalOpened) {
+    // Fallback: click the Settings gear icon in bottom-left vault switcher bar
+    await page.evaluate(() => {
+      const icons = Array.from(document.querySelectorAll(".clickable-icon"));
+      const gear = icons.find((el) => {
+        const label = (el.getAttribute("aria-label") || "").toLowerCase();
+        return label.includes("setting") || label.includes("настройк");
+      }) || document.querySelector(".workspace-drawer-vault-actions .clickable-icon:last-child");
+      if (gear instanceof HTMLElement) gear.click();
+    });
+    await sleep(600);
+  }
+  await page.evaluate(() => {
+    const app = window.app;
+    app.setting?.openTabById?.("graph-magnetic-groups");
+    const navItems = Array.from(document.querySelectorAll(".vertical-tab-nav-item"));
+    const ourTab = navItems.find((el) => (el.textContent || "").includes("Graph Magnetic Groups"));
+    if (ourTab instanceof HTMLElement) ourTab.click();
+  });
+  await sleep(800);
   // Scroll settings down to show the live MCP + Cloudflare Quick Tunnel card
   await page.evaluate(() => {
     const card = document.querySelector(".gmg-mcp-card");
@@ -543,8 +568,9 @@ try {
   });
 
   // Close settings modal back to the live Graph View
+  await page.keyboard.press("Escape");
   await page.evaluate(() => {
-    window.app.setting.close();
+    window.app.setting?.close?.();
   });
   await sleep(800);
 
