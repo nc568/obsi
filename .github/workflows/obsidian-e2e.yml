@@ -1,0 +1,79 @@
+name: Real Obsidian Desktop + Cloudflare Quick Tunnel E2E
+
+on:
+  push:
+    branches:
+      - "arena/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  obsidian-e2e:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install project dependencies + Playwright CDP client
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save --no-audit --no-fund playwright-core playwright
+
+      - name: Build plugin & run unit/MCP test suites
+        run: |
+          npm run typecheck
+          npm run build
+          npm test
+
+      - name: Install Xvfb, Real Official Obsidian Desktop (.deb) & Cloudflared
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb x11-utils jq curl
+
+          echo "Fetching latest official Obsidian Linux .deb from obsidianmd/obsidian-releases..."
+          DEB_URL=$(curl -fsSL https://api.github.com/repos/obsidianmd/obsidian-releases/releases/latest \
+            | jq -r '.assets[] | select(.name | test("amd64\\.deb$")) | .browser_download_url' \
+            | head -n 1)
+          echo "Downloading Obsidian from: $DEB_URL"
+          curl -fL "$DEB_URL" -o /tmp/obsidian.deb
+          sudo apt-get install -y /tmp/obsidian.deb
+
+          echo "Installing cloudflared for real Quick Tunnel verification..."
+          sudo curl -fL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
+            -o /usr/local/bin/cloudflared
+          sudo chmod +x /usr/local/bin/cloudflared
+          cloudflared --version
+
+      - name: Run Real Obsidian Graph View + Miro + Cloudflare Quick Tunnel E2E
+        run: |
+          xvfb-run -a -s "-screen 0 1640x1024x24" node tests/real-obsidian-e2e.mjs
+
+      - name: Upload screenshots as workflow artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-obsidian-screenshots
+          path: docs/obsidian-e2e/
+
+      - name: Commit verified Real Obsidian screenshots back to branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/obsidian-e2e/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(e2e): add real Obsidian Desktop + Cloudflare Quick Tunnel verification screenshots [skip ci]"
+            git push origin HEAD:${{ github.ref_name }}
+          fi

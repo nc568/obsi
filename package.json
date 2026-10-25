@@ -1,0 +1,23 @@
+{
+  "name": "obsidian-graph-magnetic-groups",
+  "version": "2.0.0",
+  "description": "Obsidian Graph View Magnetic Groups + Miro-Board Hard Frames inside a dynamic graph + Full Obsidian & Graph MCP Server with Cloudflare Quick Tunnel support",
+  "main": "main.js",
+  "scripts": {
+    "build": "node esbuild.config.mjs production",
+    "dev": "node esbuild.config.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node tests/physics.test.mjs && node tests/mcp.test.mjs",
+    "mcp": "node mcp-server/obsidian-mcp-server.mjs",
+    "preview": "node preview/server.mjs"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@resvg/resvg-js": "^2.6.2",
+    "@types/node": "^22.0.0",
+    "d3-force": "^3.0.0",
+    "esbuild": "^0.24.0",
+    "obsidian": "latest",
+    "typescript": "^5.6.0"
+  }
+}

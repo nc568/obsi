@@ -1,0 +1,452 @@
+export const INLINE_PLUGIN_STYLES = `
+.gmg-overlay-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+.gmg-badge-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 4;
+}
+.gmg-group-badge {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-normal);
+  background: color-mix(in srgb, var(--background-primary) 86%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid var(--gmg-color, var(--interactive-accent));
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+  pointer-events: auto;
+  cursor: grab;
+  user-select: none;
+  white-space: nowrap;
+  transition: box-shadow 120ms ease, background-color 120ms ease;
+  will-change: transform;
+}
+.gmg-group-badge:hover {
+  background: var(--background-primary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.34);
+}
+.gmg-group-badge.is-dragging {
+  cursor: grabbing;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.44);
+  z-index: 10;
+}
+.gmg-group-badge.is-pinned {
+  border-style: solid;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--gmg-color, #7c5cff) 32%, transparent),
+    0 3px 12px rgba(0, 0, 0, 0.28);
+}
+.gmg-miro-header {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-normal);
+  background: color-mix(in srgb, var(--background-primary) 92%, var(--gmg-color, #7c5cff) 8%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid var(--gmg-color, var(--interactive-accent));
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.28);
+  pointer-events: auto;
+  cursor: grab;
+  user-select: none;
+  white-space: nowrap;
+  will-change: transform;
+}
+.gmg-miro-header.is-dragging {
+  cursor: grabbing;
+  z-index: 12;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+.gmg-miro-mode-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--gmg-color, #7c5cff) 22%, transparent);
+  color: var(--text-normal);
+  cursor: pointer;
+  border: 1px solid color-mix(in srgb, var(--gmg-color, #7c5cff) 45%, transparent);
+}
+.gmg-miro-mode-chip:hover {
+  background: color-mix(in srgb, var(--gmg-color, #7c5cff) 38%, transparent);
+}
+.gmg-miro-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 18px;
+  padding: 0;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+.gmg-miro-mini-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+.gmg-miro-resizer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid var(--gmg-color, #7c5cff);
+  background: color-mix(in srgb, var(--background-primary) 90%, var(--gmg-color, #7c5cff) 10%);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  line-height: 1;
+  cursor: nwse-resize;
+  pointer-events: auto;
+  user-select: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  will-change: transform;
+}
+.gmg-miro-resizer:hover,
+.gmg-miro-resizer.is-resizing {
+  background: var(--gmg-color, #7c5cff);
+  color: #fff;
+}
+.gmg-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gmg-color, var(--interactive-accent));
+  flex-shrink: 0;
+}
+.gmg-badge-count {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+  padding-left: 2px;
+}
+.gmg-badge-pin {
+  font-size: 10px;
+  color: var(--text-accent);
+  margin-left: 1px;
+}
+.gmg-lasso-banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+}
+.gmg-lasso-mode {
+  cursor: crosshair !important;
+}
+.gmg-floating-toolbar {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--background-secondary) 88%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--background-modifier-border);
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+}
+.gmg-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+.gmg-tool-btn:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+.gmg-tool-btn.is-active {
+  color: var(--text-on-accent);
+  background: var(--interactive-accent);
+}
+.gmg-tool-btn svg {
+  width: 14px;
+  height: 14px;
+}
+.gmg-controls-section {
+  border-top: 1px solid var(--background-modifier-border);
+  padding-top: 6px;
+  margin-top: 6px;
+}
+.gmg-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 6px;
+}
+.gmg-section-header:hover {
+  background: var(--background-modifier-hover);
+}
+.gmg-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+.gmg-section-body {
+  padding: 6px 8px 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gmg-controls-section.is-collapsed .gmg-section-body {
+  display: none;
+}
+.gmg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-normal);
+}
+.gmg-slider-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.gmg-slider-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.gmg-slider-val {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+.gmg-slider-block input[type="range"] {
+  width: 100%;
+}
+.gmg-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 2px;
+}
+.gmg-group-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 7px;
+  border-radius: 7px;
+  background: var(--background-primary-alt);
+  border: 1px solid var(--background-modifier-border);
+  font-size: 12px;
+}
+.gmg-group-item.is-disabled {
+  opacity: 0.52;
+}
+.gmg-color-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+}
+.gmg-group-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+.gmg-group-name-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gmg-group-sub {
+  font-size: 10.5px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gmg-mini-tag {
+  font-size: 9.5px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--background-modifier-hover);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.gmg-mini-tag:hover {
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
+}
+.gmg-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 5px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.gmg-icon-btn:hover {
+  color: var(--text-normal);
+  background: var(--background-modifier-hover);
+}
+.gmg-icon-btn svg {
+  width: 13px;
+  height: 13px;
+}
+.gmg-actions-bar {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+  flex-wrap: wrap;
+}
+.gmg-actions-bar button {
+  flex: 1;
+  font-size: 11.5px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+.gmg-empty-hint {
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  padding: 6px 4px;
+}
+.gmg-node-picker {
+  max-height: 210px;
+  overflow-y: auto;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 7px;
+  padding: 4px;
+  margin-top: 6px;
+  background: var(--background-primary-alt);
+}
+.gmg-node-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.gmg-node-option:hover {
+  background: var(--background-modifier-hover);
+}
+.gmg-color-presets {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.gmg-color-preset {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 100ms ease;
+}
+.gmg-color-preset.is-selected {
+  border-color: var(--text-normal);
+  transform: scale(1.14);
+}
+.gmg-mcp-card {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gmg-mcp-url-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  background: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  font-family: var(--font-monospace);
+  font-size: 11.5px;
+  overflow-x: auto;
+  color: var(--text-accent);
+}
+`;

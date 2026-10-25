@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Obsidian — Graph Magnetic Groups & Miro + MCP (Live Preview)</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    :root, body {
+      --background-primary: #14161e;
+      --background-primary-alt: #1b1e29;
+      --background-secondary: #1e2230;
+      --background-modifier-border: #2f354a;
+      --background-modifier-hover: rgba(255, 255, 255, 0.08);
+      --interactive-accent: #7c5cff;
+      --text-on-accent: #ffffff;
+      --text-normal: #e8ecf4;
+      --text-muted: #929bb4;
+      --text-accent: #a590ff;
+      --font-monospace: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--background-primary);
+      color: var(--text-normal);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+    }
+
+    .obsi-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .obsi-titlebar {
+      height: 46px;
+      padding: 0 14px;
+      background: #0f1118;
+      border-bottom: 1px solid var(--background-modifier-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-shrink: 0;
+      z-index: 30;
+    }
+
+    .obsi-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .obsi-gem {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #9b7bff, #5b36d6);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 12px;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(124, 92, 255, 0.45);
+    }
+
+    .obsi-tab-pill {
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: var(--background-secondary);
+      border: 1px solid var(--background-modifier-border);
+      color: var(--text-normal);
+      font-size: 11.5px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .obsi-top-actions {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+
+    .obsi-dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, #7c5cff, #6142e8);
+      color: #fff;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(124, 92, 255, 0.35);
+    }
+
+    .obsi-dl-btn:hover {
+      filter: brightness(1.08);
+    }
+
+    .obsi-mcp-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 11px;
+      border-radius: 7px;
+      background: rgba(6, 214, 160, 0.16);
+      color: #3df0c2;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(6, 214, 160, 0.45);
+      cursor: pointer;
+    }
+
+    .obsi-mcp-btn:hover {
+      background: rgba(6, 214, 160, 0.26);
+    }
+
+    .obsi-dl-sec {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 7px;
+      background: var(--background-secondary);
+      color: var(--text-normal);
+      text-decoration: none;
+      font-size: 12px;
+      border: 1px solid var(--background-modifier-border);
+      cursor: pointer;
+    }
+
+    .obsi-dl-sec:hover {
+      background: var(--background-modifier-hover);
+    }
+
+    .obsi-workspace {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .view-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #obsidian-webgl-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+      cursor: grab;
+    }
+
+    #obsidian-webgl-canvas:active {
+      cursor: grabbing;
+    }
+
+    .graph-controls {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 294px;
+      max-height: calc(100% - 24px);
+      overflow-y: auto;
+      background: color-mix(in srgb, var(--background-secondary) 92%, transparent);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--background-modifier-border);
+      border-radius: 10px;
+      padding: 6px;
+      z-index: 10;
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .obsi-core-section {
+      padding: 4px 8px 8px 8px;
+      font-size: 11px;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
+
+    /* Live MCP Cloud Agent Playground Drawer */
+    .obsi-mcp-drawer {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      width: 356px;
+      max-height: calc(100% - 76px);
+      overflow-y: auto;
+      background: rgba(24, 28, 41, 0.96);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(6, 214, 160, 0.45);
+      border-radius: 12px;
+      padding: 14px;
+      z-index: 22;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.52);
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .obsi-mcp-drawer.is-open {
+      display: flex;
+    }
+
+    .obsi-mcp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+
+    .obsi-mcp-action {
+      font-size: 11.5px;
+      padding: 7px 9px;
+      text-align: left;
+      border-radius: 7px;
+      background: var(--background-primary);
+      border: 1px solid var(--background-modifier-border);
+      color: var(--text-normal);
+      cursor: pointer;
+    }
+
+    .obsi-mcp-action:hover {
+      border-color: #06d6a0;
+      background: rgba(6, 214, 160, 0.1);
+    }
+
+    .obsi-mcp-log {
+      font-family: var(--font-monospace);
+      font-size: 11px;
+      background: #0e1017;
+      border: 1px solid #272c40;
+      border-radius: 8px;
+      padding: 9px;
+      max-height: 180px;
+      overflow: auto;
+      white-space: pre-wrap;
+      color: #a9f5de;
+    }
+
+    .obsi-notice-container {
+      position: fixed;
+      top: 56px;
+      right: 320px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .obsi-notice {
+      background: #252a3d;
+      color: var(--text-normal);
+      border: 1px solid #414969;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      transition: opacity 0.25s ease;
+    }
+
+    .obsi-context-menu {
+      position: fixed;
+      z-index: 200;
+      min-width: 225px;
+      background: #1f2332;
+      border: 1px solid var(--background-modifier-border);
+      border-radius: 8px;
+      padding: 5px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.48);
+    }
+
+    .obsi-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 5px;
+      font-size: 12.5px;
+      cursor: pointer;
+      color: var(--text-normal);
+    }
+
+    .obsi-menu-item:hover {
+      background: var(--interactive-accent);
+      color: #fff;
+    }
+
+    .obsi-menu-sep {
+      height: 1px;
+      margin: 4px 0;
+      background: var(--background-modifier-border);
+    }
+
+    .obsi-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 150;
+      background: rgba(0, 0, 0, 0.62);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .obsi-modal {
+      position: relative;
+      width: min(560px, 92vw);
+      max-height: 86vh;
+      overflow-y: auto;
+      background: var(--background-secondary);
+      border: 1px solid var(--background-modifier-border);
+      border-radius: 12px;
+      padding: 20px 22px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+    }
+
+    .obsi-modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .obsi-setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .obsi-setting-name { font-size: 13px; font-weight: 600; }
+    .obsi-setting-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .obsi-setting-control { display: flex; align-items: center; gap: 6px; }
+    .obsi-input {
+      background: var(--background-primary);
+      border: 1px solid var(--background-modifier-border);
+      color: var(--text-normal);
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 12.5px;
+    }
+
+    button {
+      background: var(--background-primary);
+      color: var(--text-normal);
+      border: 1px solid var(--background-modifier-border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12.5px;
+    }
+
+    button.mod-cta {
+      background: var(--interactive-accent);
+      color: #fff;
+      border-color: transparent;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="theme-dark">
+  <div class="obsi-shell">
+    <header class="obsi-titlebar">
+      <div class="obsi-brand">
+        <span class="obsi-gem">O</span>
+        <span>Obsidian Graph + Miro Board</span>
+        <span class="obsi-tab-pill">v2.0 · Магнит + Доска Miro + MCP</span>
+      </div>
+      <div class="obsi-top-actions">
+        <button class="obsi-mcp-btn" id="btn-toggle-mcp">🤖 MCP Агент (Live тест)</button>
+        <button class="obsi-dl-sec" id="btn-reset-demo" title="Сбросить демо к исходному виду">↺ Сброс демо</button>
+        <a class="obsi-dl-sec" href="./download/obsidian-mcp-server.mjs" download="obsidian-mcp-server.mjs">⬇ MCP CLI (.mjs)</a>
+        <a class="obsi-dl-btn" href="./download/graph-magnetic-groups.zip" download="graph-magnetic-groups.zip">
+          ⬇ Скачать плагин v2.0 (.zip)
+        </a>
+      </div>
+    </header>
+
+    <main class="obsi-workspace">
+      <div class="view-content" id="graph-view-content">
+        <canvas id="obsidian-webgl-canvas"></canvas>
+
+        <!-- Live MCP Agent Tester Drawer -->
+        <aside class="obsi-mcp-drawer" id="mcp-drawer">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <strong style="font-size:13.5px;color:#3df0c2;">🤖 Live MCP Управление графом</strong>
+            <button id="btn-close-mcp" style="padding:2px 7px;font-size:11px;">✕</button>
+          </div>
+          <div style="font-size:11.5px;color:var(--text-muted);line-height:1.45;">
+            Нажмите любое действие ниже — это реальный JSON-RPC вызов нашего встроенного <b>ObsidianMcpEngine</b> (точно так же вашим графом управляет облачный агент через <code>*.trycloudflare.com</code>!):
+          </div>
+          <div class="obsi-mcp-grid">
+            <button class="obsi-mcp-action" data-mcp="kanban">▦ Kanban Miro (3 колонки)</button>
+            <button class="obsi-mcp-action" data-mcp="quadrants">⊞ Матрица Miro 2×2</button>
+            <button class="obsi-mcp-action" data-mcp="ring">◎ Кольцо рамок вокруг кучи</button>
+            <button class="obsi-mcp-action" data-mcp="organic">🧲 Вернуть всё в мягкий граф</button>
+            <button class="obsi-mcp-action" data-mcp="add-note">📝 Создать заметку со связями</button>
+            <button class="obsi-mcp-action" data-mcp="vault-info">📊 Запросить vault_info</button>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted);">Ответ MCP JSON-RPC (20 инструментов):</div>
+          <pre class="obsi-mcp-log" id="mcp-log">Готов к вызову инструментов MCP...</pre>
+          <div style="font-size:11px;color:var(--text-muted);border-top:1px solid var(--background-modifier-border);padding-top:8px;">
+            <b>В десктопном Obsidian:</b> откройте <i>Настройки → Graph Magnetic Groups</i> и нажмите <b>«☁️ Запустить Quick Tunnel»</b> — плагин сам выдаст готовую ссылку <code>https://xxx.trycloudflare.com/t/.../mcp</code>!
+          </div>
+        </aside>
+
+        <div class="graph-controls">
+          <div class="obsi-core-section">
+            <strong style="color:var(--text-normal)">Как тестировать Miro + Граф:</strong><br/>
+            • Тяните шапку рамки Miro — вся рамка двигается по живому графу!<br/>
+            • Потяните уголок <b>◢</b> — меняйте размер рамки Miro.<br/>
+            • Нажмите на чип <b>📌 / 📋 / 🧲</b> — переключайте между жёсткой доской Miro, живой рамкой и мягкой группой!<br/>
+            • ПКМ по ноде или <b>Shift + ЛКМ</b> (Лассо) — закрепить ноды на доске.
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="./vendor/d3-force.js"></script>
+  <script src="./obsidian-shim.js"></script>
+  <script>
+    // Default hybrid demo: 1 Hard-Pinned Miro Grid + 1 Live Miro Frame + 1 Organic Magnetic Lobe!
+    window.__DEFAULT_PREVIEW_PLUGIN_DATA = {
+      enabled: true,
+      enableLocalGraph: true,
+      syncNativeColorGroups: true,
+      attractionStrength: 0.65,
+      clusterTether: 0.78,
+      groupCompactness: 0.58,
+      showGroupZones: true,
+      showGroupLabels: true,
+      showTetherLines: true,
+      showBoardGrid: true,
+      repelOutsidersFromFrames: true,
+      zoneOpacity: 0.14,
+      shiftDragLasso: true,
+      sectionCollapsed: false,
+      language: "ru",
+      pinnedNodes: {
+        "00 Индекс хранилища.md": { x: 0, y: -255 }
+      },
+      groups: [
+        {
+          id: "demo_ml_miro",
+          name: "ML Исследования",
+          color: "#06d6a0",
+          enabled: true,
+          query: "path:Исследования/",
+          nodeIds: [],
+          excludedNodeIds: [],
+          strength: 1.0,
+          colorNodes: true,
+          mode: "miro-pinned",
+          anchorMode: "auto",
+          frameX: -660,
+          frameY: -210,
+          frameW: 360,
+          frameH: 310,
+          frameSubLayout: "grid"
+        },
+        {
+          id: "demo_backend_live",
+          name: "Backend & API",
+          color: "#ff6b6b",
+          enabled: true,
+          query: "tag:#backend",
+          nodeIds: [],
+          excludedNodeIds: [],
+          strength: 1.0,
+          colorNodes: true,
+          mode: "miro-free",
+          anchorMode: "auto",
+          frameX: 300,
+          frameY: -200,
+          frameW: 330,
+          frameH: 300,
+          frameSubLayout: "grid"
+        },
+        {
+          id: "demo_design_organic",
+          name: "Дизайн и UI",
+          color: "#7c5cff",
+          enabled: true,
+          query: "tag:#дизайн",
+          nodeIds: [],
+          excludedNodeIds: [],
+          strength: 1.0,
+          colorNodes: true,
+          mode: "organic",
+          anchorMode: "auto"
+        }
+      ]
+    };
+
+    document.getElementById("btn-reset-demo").addEventListener("click", () => {
+      localStorage.removeItem("obsi_gmg_preview_settings_v2");
+      location.reload();
+    });
+  </script>
+  <script>
+    (async function bootObsidianPreview() {
+      const { TFile, TFolder } = window.__obsidianShim;
+      const files = new Map();
+      const folders = new Map();
+      const caches = new Map();
+      const resolvedLinks = {};
+      const rawNodes = [];
+      const rawLinks = [];
+      const nodeById = new Map();
+      const graphLinks = [];
+      const neighborSet = new Map();
+
+      let seed = 0x13579bdf;
+      const rand = () => {
+        seed ^= seed << 13;
+        seed ^= seed >>> 17;
+        seed ^= seed << 5;
+        return ((seed >>> 0) % 100000) / 100000;
+      };
+
+      function registerFolderForPath(p) {
+        const idx = p.lastIndexOf("/");
+        if (idx > 0) {
+          const dir = p.slice(0, idx);
+          if (!folders.has(dir)) folders.set(dir, new TFolder(dir));
+        }
+      }
+
+      function addNote(path, tags, content = "") {
+        registerFolderForPath(path);
+        const tf = new TFile(path, tags, {}, content);
+        files.set(path, tf);
+        caches.set(path, { tags });
+        resolvedLinks[path] = resolvedLinks[path] || {};
+        const n = {
+          id: path,
+          type: "file",
+          x: (rand() - 0.5) * 80,
+          y: (rand() - 0.5) * 80,
+          vx: 0,
+          vy: 0,
+          fx: null,
+          fy: null,
+          weight: 1,
+          color: null
+        };
+        rawNodes.push(n);
+        nodeById.set(path, n);
+        neighborSet.set(path, new Set([path]));
+        return n;
+      }
+
+      function addEdge(a, b) {
+        if (a === b) return;
+        const sn = nodeById.get(a);
+        const tn = nodeById.get(b);
+        if (!sn || !tn) return;
+        rawLinks.push([a, b]);
+        sn.weight++;
+        tn.weight++;
+        graphLinks.push({ source: sn, target: tn });
+        neighborSet.get(a).add(b);
+        neighborSet.get(b).add(a);
+        resolvedLinks[a] = resolvedLinks[a] || {};
+        resolvedLinks[a][b] = 1;
+      }
+
+      const coreHubs = [
+        "00 Индекс хранилища.md",
+        "Карта проектов.md",
+        "Ежедневные заметки.md",
+        "База знаний.md",
+        "Дорожная карта 2026.md",
+        "Встречи команды.md",
+        "Справочник терминов.md",
+        "Архив заметок.md",
+        "Чеклист релиза.md",
+        "Обзор квартала.md",
+        "Заметки с созвона.md",
+        "Идеи на будущее.md"
+      ];
+      coreHubs.forEach((h) => addNote(h, ["#core"]));
+      addEdge("00 Индекс хранилища.md", "Карта проектов.md");
+      addEdge("00 Индекс хранилища.md", "База знаний.md");
+      addEdge("00 Индекс хранилища.md", "Дорожная карта 2026.md");
+      addEdge("00 Индекс хранилища.md", "Ежедневные заметки.md");
+      addEdge("Карта проектов.md", "Дорожная карта 2026.md");
+      addEdge("Карта проектов.md", "Чеклист релиза.md");
+      addEdge("Карта проектов.md", "Встречи команды.md");
+      addEdge("База знаний.md", "Справочник терминов.md");
+      addEdge("База знаний.md", "Архив заметок.md");
+      addEdge("Дорожная карта 2026.md", "Обзор квартала.md");
+      addEdge("Встречи команды.md", "Заметки с созвона.md");
+      addEdge("Ежедневные заметки.md", "Идеи на будущее.md");
+      addEdge("Чеклист релиза.md", "Обзор квартала.md");
+
+      const backend = [];
+      for (let i = 1; i <= 11; i++) {
+        const p = `Backend/Сервис ${i}.md`;
+        backend.push(p);
+        addNote(p, ["#backend", "#код"]);
+      }
+      addEdge(backend[0], "00 Индекс хранилища.md");
+      addEdge(backend[0], "Карта проектов.md");
+      addEdge(backend[1], "База знаний.md");
+      addEdge(backend[2], "Чеклист релиза.md");
+      addEdge(backend[3], "Справочник терминов.md");
+      for (let i = 0; i < backend.length - 1; i++) {
+        addEdge(backend[i], backend[i + 1]);
+        if (i + 3 < backend.length) addEdge(backend[i], backend[i + 3]);
+      }
+
+      const design = [];
+      for (let i = 1; i <= 11; i++) {
+        const p = `Дизайн/Макет ${i}.md`;
+        design.push(p);
+        addNote(p, ["#дизайн", "#ui"]);
+      }
+      addEdge(design[0], "00 Индекс хранилища.md");
+      addEdge(design[1], "Карта проектов.md");
+      addEdge(design[2], "Дорожная карта 2026.md");
+      addEdge(design[4], "Встречи команды.md");
+      for (let i = 0; i < design.length - 1; i++) {
+        addEdge(design[i], design[i + 1]);
+        if (i + 2 < design.length && i % 2 === 0) addEdge(design[i], design[i + 2]);
+      }
+
+      const ml = [];
+      for (let i = 1; i <= 10; i++) {
+        const p = `Исследования/Модель ${i}.md`;
+        ml.push(p);
+        addNote(p, ["#ml", "#исследования"]);
+      }
+      addNote("Исследования/Черновик 1.md", ["#ml"]);
+      addNote("Исследования/Черновик 2.md", ["#ml"]);
+      addEdge(ml[0], "База знаний.md");
+      addEdge(ml[1], "00 Индекс хранилища.md");
+      addEdge(ml[2], "Идеи на будущее.md");
+      addEdge(ml[3], "Справочник терминов.md");
+      for (let i = 0; i < ml.length - 1; i++) addEdge(ml[i], ml[i + 1]);
+
+      addEdge(backend[4], design[3]);
+      addEdge(backend[6], ml[2]);
+      addEdge(design[5], ml[4]);
+
+      addNote("Дизайн API контрактов.md", ["#backend", "#дизайн"]);
+      addEdge("Дизайн API контрактов.md", backend[2]);
+      addEdge("Дизайн API контрактов.md", design[2]);
+      addEdge("Дизайн API контрактов.md", "Карта проектов.md");
+
+      for (let i = 1; i <= 9; i++) {
+        const p = `Заметки/Заметка ${i}.md`;
+        addNote(p, ["#заметка"]);
+        addEdge(p, coreHubs[i % coreHubs.length]);
+        if (i % 2 === 0) addEdge(p, coreHubs[(i + 3) % coreHubs.length]);
+      }
+
+      let d3SimLinks = rawLinks.map(([s, t]) => ({ source: s, target: t }));
+      const sim = d3
+        .forceSimulation(rawNodes)
+        .force("charge", d3.forceManyBody().strength(-260))
+        .force("link", d3.forceLink(d3SimLinks).id((d) => d.id).distance(140).strength(0.5))
+        .force("x", d3.forceX(0).strength(0.05))
+        .force("y", d3.forceY(0).strength(0.05))
+        .alpha(0.95);
+
+      function rebuildSimulationGraph() {
+        d3SimLinks = rawLinks.map(([s, t]) => ({ source: s, target: t }));
+        sim.nodes(rawNodes);
+        sim.force("link", d3.forceLink(d3SimLinks).id((d) => d.id).distance(140).strength(0.5));
+        sim.alpha(0.75).restart();
+      }
+
+      const contentEl = document.getElementById("graph-view-content");
+      const canvas = document.getElementById("obsidian-webgl-canvas");
+      const ctx = canvas.getContext("2d");
+
+      const dpr = window.devicePixelRatio || 1;
+      const renderer = {
+        containerEl: contentEl,
+        interactiveEl: canvas,
+        nodes: rawNodes,
+        links: graphLinks,
+        dragNode: null,
+        highlightNode: null,
+        panX: (window.innerWidth * 0.43) * dpr,
+        panY: (window.innerHeight * 0.52) * dpr,
+        scale: 0.64 * dpr,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        idleFrames: 0,
+        px: { renderer: { resolution: dpr } },
+        worker: {
+          postMessage(msg) {
+            if (!msg) return;
+            if (msg.nodes) {
+              for (const [id, coords] of Object.entries(msg.nodes)) {
+                const n = nodeById.get(id);
+                if (n && Array.isArray(coords)) {
+                  n.x = coords[0];
+                  n.y = coords[1];
+                }
+              }
+            }
+            if (msg.forceNode) {
+              const n = nodeById.get(msg.forceNode.id);
+              if (n) {
+                if (msg.forceNode.x === null) {
+                  n.fx = null;
+                  n.fy = null;
+                } else {
+                  n.x = msg.forceNode.x;
+                  n.y = msg.forceNode.y;
+                  n.fx = msg.forceNode.x;
+                  n.fy = msg.forceNode.y;
+                }
+              }
+            }
+            if (typeof msg.alpha === "number") sim.alpha(msg.alpha);
+            if (typeof msg.alphaTarget === "number") sim.alphaTarget(msg.alphaTarget);
+            if (msg.run) sim.restart();
+          }
+        },
+        changed() {
+          this.idleFrames = 0;
+        },
+        setData() {},
+        onNodeRightClick() {},
+        renderCallback() {
+          drawBaseGraph();
+        }
+      };
+
+      function worldToScreen(wx, wy) {
+        return {
+          x: (wx * renderer.scale + renderer.panX) / dpr,
+          y: (wy * renderer.scale + renderer.panY) / dpr
+        };
+      }
+
+      function screenToWorld(sx, sy) {
+        return {
+          x: (sx * dpr - renderer.panX) / renderer.scale,
+          y: (sy * dpr - renderer.panY) / renderer.scale
+        };
+      }
+
+      function rgbIntToCss(rgb) {
+        return "#" + Math.max(0, Math.min(0xffffff, rgb | 0)).toString(16).padStart(6, "0");
+      }
+
+      function drawBaseGraph() {
+        const rect = contentEl.getBoundingClientRect();
+        const w = Math.max(1, Math.round(rect.width * dpr));
+        const h = Math.max(1, Math.round(rect.height * dpr));
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w;
+          canvas.height = h;
+        }
+
+        ctx.save();
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, rect.width, rect.height);
+
+        const hl = renderer.highlightNode;
+        const hlNeighbors = hl ? neighborSet.get(hl.id) : null;
+
+        for (const l of graphLinks) {
+          const a = worldToScreen(l.source.x, l.source.y);
+          const b = worldToScreen(l.target.x, l.target.y);
+          const activeEdge = hl && (l.source.id === hl.id || l.target.id === hl.id);
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.lineWidth = activeEdge ? 1.8 : 1.05;
+          ctx.strokeStyle = activeEdge
+            ? "rgba(165, 144, 255, 0.92)"
+            : hl
+            ? "rgba(90, 98, 128, 0.14)"
+            : "rgba(108, 118, 152, 0.36)";
+          ctx.stroke();
+        }
+
+        const cssZoom = renderer.scale / dpr;
+
+        for (const n of rawNodes) {
+          const p = worldToScreen(n.x, n.y);
+          const r = Math.max(3.8, (3.6 + Math.sqrt(n.weight) * 1.35) * Math.pow(cssZoom, 0.55));
+          const dimmed = hl && hlNeighbors && !hlNeighbors.has(n.id);
+          const baseCol = n.color ? rgbIntToCss(n.color.rgb) : "#96a0ba";
+
+          ctx.globalAlpha = dimmed ? 0.22 : 1;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+          ctx.fillStyle = hl && hl.id === n.id ? "#ffffff" : baseCol;
+          ctx.fill();
+          ctx.lineWidth = 1.2;
+          ctx.strokeStyle = "#12141c";
+          ctx.stroke();
+
+          if (cssZoom > 0.52 || (hl && hlNeighbors && hlNeighbors.has(n.id))) {
+            const slash = n.id.lastIndexOf("/");
+            const rawName = slash >= 0 ? n.id.slice(slash + 1) : n.id;
+            const title = rawName.endsWith(".md") ? rawName.slice(0, -3) : rawName;
+            ctx.font = `${hl && hl.id === n.id ? "600 " : ""}10.5px Inter, sans-serif`;
+            ctx.textAlign = "center";
+            ctx.fillStyle = dimmed ? "rgba(180,188,210,0.2)" : "rgba(226, 232, 245, 0.86)";
+            ctx.fillText(title, p.x, p.y + r + 12);
+          }
+        }
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+
+      let isPanning = false;
+      let panStart = { x: 0, y: 0, origPanX: 0, origPanY: 0 };
+
+      function hitTestNode(sx, sy) {
+        const cssZoom = renderer.scale / dpr;
+        for (let i = rawNodes.length - 1; i >= 0; i--) {
+          const n = rawNodes[i];
+          const p = worldToScreen(n.x, n.y);
+          const r = Math.max(7, (4.5 + Math.sqrt(n.weight) * 1.4) * Math.pow(cssZoom, 0.55));
+          if (Math.hypot(p.x - sx, p.y - sy) <= r + 3) return n;
+        }
+        return null;
+      }
+
+      canvas.addEventListener("pointermove", (e) => {
+        const rect = contentEl.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+
+        if (renderer.dragNode) {
+          const w = screenToWorld(sx, sy);
+          renderer.worker.postMessage({
+            forceNode: { id: renderer.dragNode.id, x: w.x, y: w.y },
+            alpha: 0.3,
+            alphaTarget: 0.15,
+            run: true
+          });
+          return;
+        }
+        if (isPanning) {
+          renderer.panX = panStart.origPanX + (e.clientX - panStart.x) * dpr;
+          renderer.panY = panStart.origPanY + (e.clientY - panStart.y) * dpr;
+          return;
+        }
+
+        const hit = hitTestNode(sx, sy);
+        if (hit !== renderer.highlightNode) {
+          renderer.highlightNode = hit;
+          canvas.style.cursor = hit ? "pointer" : "grab";
+        }
+      });
+
+      canvas.addEventListener("pointerdown", (e) => {
+        if (e.button !== 0) return;
+        const rect = contentEl.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const hit = hitTestNode(sx, sy);
+        if (hit) {
+          renderer.dragNode = hit;
+          renderer.worker.postMessage({
+            forceNode: { id: hit.id, x: hit.x, y: hit.y },
+            alpha: 0.35,
+            alphaTarget: 0.15,
+            run: true
+          });
+        } else {
+          isPanning = true;
+          panStart = { x: e.clientX, y: e.clientY, origPanX: renderer.panX, origPanY: renderer.panY };
+        }
+      });
+
+      window.addEventListener("pointerup", () => {
+        if (renderer.dragNode) {
+          const id = renderer.dragNode.id;
+          renderer.dragNode = null;
+          renderer.worker.postMessage({
+            forceNode: { id, x: null, y: null },
+            alphaTarget: 0,
+            run: true
+          });
+        }
+        isPanning = false;
+      });
+
+      canvas.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          const rect = contentEl.getBoundingClientRect();
+          const sx = (e.clientX - rect.left) * dpr;
+          const sy = (e.clientY - rect.top) * dpr;
+          const factor = e.deltaY < 0 ? 1.12 : 1 / 1.12;
+          const newScale = Math.max(0.15 * dpr, Math.min(4 * dpr, renderer.scale * factor));
+          renderer.panX = sx - ((sx - renderer.panX) / renderer.scale) * newScale;
+          renderer.panY = sy - ((sy - renderer.panY) / renderer.scale) * newScale;
+          renderer.scale = newScale;
+        },
+        { passive: false }
+      );
+
+      canvas.addEventListener("contextmenu", (e) => {
+        const rect = contentEl.getBoundingClientRect();
+        const hit = hitTestNode(e.clientX - rect.left, e.clientY - rect.top);
+        if (!hit) return;
+        e.preventDefault();
+        renderer.onNodeRightClick(e, hit.id, "file");
+      });
+
+      const graphLeaf = {
+        view: {
+          contentEl,
+          containerEl: contentEl,
+          renderer,
+          dataEngine: {
+            options: { linkDistance: 140, colorGroups: [] },
+            getOptions() {
+              return this.options;
+            }
+          },
+          getViewType: () => "graph"
+        }
+      };
+
+      const app = {
+        vault: {
+          getName: () => "Demo Obsidian Vault",
+          getAbstractFileByPath: (p) => files.get(p) || folders.get(p) || null,
+          getMarkdownFiles: () => Array.from(files.values()),
+          getAllLoadedFiles: () => [...folders.values(), ...files.values()],
+          cachedRead: async (tf) => tf._content || "",
+          read: async (tf) => tf._content || "",
+          modify: async (tf, text) => {
+            tf._content = text;
+          },
+          createFolder: async (dir) => {
+            folders.set(dir, new TFolder(dir));
+          },
+          create: async (p, content) => {
+            const tags = [];
+            const tm = content.match(/#[a-zA-Zа-яА-Я0-9_/-]+/g);
+            if (tm) tm.forEach((t) => tags.push(t.toLowerCase()));
+            addNote(p, tags, content);
+            const lm = [...content.matchAll(/\[\[([^\]]+)\]\]/g)];
+            for (const m of lm) {
+              const target = m[1].endsWith(".md") ? m[1] : `${m[1]}.md`;
+              if (nodeById.has(target)) addEdge(p, target);
+            }
+            rebuildSimulationGraph();
+            return files.get(p);
+          },
+          trash: async (tf) => {
+            files.delete(tf.path);
+          },
+          on: () => ({})
+        },
+        fileManager: {
+          renameFile: async (tf, newPath) => {
+            files.delete(tf.path);
+            tf.path = newPath;
+            files.set(newPath, tf);
+          }
+        },
+        metadataCache: {
+          resolvedLinks,
+          getFileCache: (tf) => caches.get(tf.path) || null,
+          getFirstLinkpathDest: (lp) => files.get(lp + ".md") || files.get(lp) || null,
+          on: () => ({})
+        },
+        workspace: {
+          activeLeaf: graphLeaf,
+          onLayoutReady: (cb) => setTimeout(cb, 0),
+          getLeavesOfType: (t) => (t === "graph" ? [graphLeaf] : []),
+          getLeaf: () => graphLeaf,
+          getMostRecentLeaf: () => graphLeaf,
+          on: () => ({})
+        }
+      };
+
+      // Boot compiled `main.js` plugin bundle!
+      const resp = await fetch("./main.js");
+      const mainJsSource = await resp.text();
+      const cjsModule = { exports: {} };
+      const factory = new Function("module", "exports", "require", mainJsSource);
+      factory(cjsModule, cjsModule.exports, window.require);
+      const PluginClass = cjsModule.exports.default || cjsModule.exports;
+
+      const manifestResp = await fetch("./manifest.json");
+      const manifest = await manifestResp.json();
+      const pluginInstance = new PluginClass(app, manifest);
+      await pluginInstance.onload();
+
+      // Wire Live MCP Agent Playground Drawer!
+      const mcpDrawer = document.getElementById("mcp-drawer");
+      const mcpLog = document.getElementById("mcp-log");
+      document.getElementById("btn-toggle-mcp").addEventListener("click", () => {
+        mcpDrawer.classList.toggle("is-open");
+      });
+      document.getElementById("btn-close-mcp").addEventListener("click", () => {
+        mcpDrawer.classList.remove("is-open");
+      });
+
+      let noteSeq = 1;
+      document.querySelectorAll(".obsi-mcp-action").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const action = btn.dataset.mcp;
+          let rpcReq;
+          if (action === "kanban") {
+            rpcReq = {
+              jsonrpc: "2.0",
+              id: Date.now(),
+              method: "tools/call",
+              params: {
+                name: "graph_arrange_miro_board",
+                arguments: { boardStyle: "columns", gap: 110 }
+              }
+            };
+          } else if (action === "quadrants") {
+            rpcReq = {
+              jsonrpc: "2.0",
+              id: Date.now(),
+              method: "tools/call",
+              params: {
+                name: "graph_arrange_miro_board",
+                arguments: { boardStyle: "quadrants", gap: 110 }
+              }
+            };
+          } else if (action === "ring") {
+            rpcReq = {
+              jsonrpc: "2.0",
+              id: Date.now(),
+              method: "tools/call",
+              params: {
+                name: "graph_arrange_miro_board",
+                arguments: { boardStyle: "ring", gap: 90 }
+              }
+            };
+          } else if (action === "organic") {
+            rpcReq = {
+              jsonrpc: "2.0",
+              id: Date.now(),
+              method: "tools/call",
+              params: {
+                name: "graph_reset_layout",
+                arguments: {
+                  convertAllFramesToOrganic: true,
+                  unpinAllIndividualNodes: true
+                }
+              }
+            };
+          } else if (action === "add-note") {
+            const num = noteSeq++;
+            rpcReq = {
+              jsonrpc: "2.0",
+              id: Date.now(),
+              method: "tools/call",
+              params: {
+                name: "create_or_update_note",
+                arguments: {
+                  path: `Исследования/MCP Агент ${num}.md`,
+                  content: `# MCP Агент ${num}\n#ml #исследования\nСвязан с [[00 Индекс хранилища.md]] и [[Backend/Сервис 1.md]].\n`
+                }
+              }
+            };
+          } else {
+            rpcReq = {
+              jsonrpc: "2.0",
+              id: Date.now(),
+              method: "tools/call",
+              params: { name: "vault_info", arguments: {} }
+            };
+          }
+
+          const res = await pluginInstance.mcpEngine.handleJsonRpcMessage(rpcReq);
+          sim.alpha(0.65).restart();
+          const textOut = res?.result?.content?.[0]?.text || JSON.stringify(res, null, 2);
+          mcpLog.textContent = `▶ ${rpcReq.params.name}\n` + textOut;
+        });
+      });
+
+      function frame() {
+        renderer.renderCallback();
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "id": "graph-magnetic-groups",
+  "name": "Graph Magnetic Groups & Miro + MCP",
+  "version": "2.0.0",
+  "minAppVersion": "1.4.0",
+  "description": "Magnetic node groups, hard-fixed Miro-board frames inside a live dynamic Graph View, plus built-in Obsidian MCP server & Cloudflare Quick Tunnel support.",
+  "author": "Graph Magnetic Groups",
+  "isDesktopOnly": false
+}
