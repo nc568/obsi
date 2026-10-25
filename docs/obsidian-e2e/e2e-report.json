@@ -69,7 +69,7 @@
         "lastCallTimestamp": 0
       }
     },
-    "publicTunnelBase": "https://time-fares-thriller-dsl.trycloudflare.com"
+    "publicTunnelBase": "https://instrumental-asset-gasoline-activities.trycloudflare.com"
   },
   "phase4CloudAgentOverCloudflare": {
     "connectedViaTryCloudflare": true,
