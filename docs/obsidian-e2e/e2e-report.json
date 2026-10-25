@@ -1,0 +1,113 @@
+{
+  "obsidianVersion": "New tab - obsidian-live-e2e-vault - Obsidian 1.14.5",
+  "webglRenderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+  "pluginLoaded": true,
+  "consoleErrors": [],
+  "phase1Organic": {
+    "nodeCount": 38,
+    "linkCount": 77,
+    "hasOverlay": true,
+    "hasControlsSection": true,
+    "badges": [
+      "ML Исследования9🧲",
+      "Backend & API10🧲",
+      "Дизайн и UI10🧲"
+    ]
+  },
+  "phase2MiroHybrid": {
+    "miroHeaders": [
+      "ML Исследования9📌 Доска Miro▦⋯",
+      "Backend & API10📋 Рамка Miro▦⋯"
+    ],
+    "resizersCount": 2,
+    "pinnedMlCardsCount": 9,
+    "sampleMlCoords": [
+      {
+        "id": "Исследования/Модель 1.md",
+        "x": -590,
+        "y": -134,
+        "fx": -590,
+        "fy": -134
+      },
+      {
+        "id": "Исследования/Модель 2.md",
+        "x": -450,
+        "y": -134,
+        "fx": -450,
+        "fy": -134
+      },
+      {
+        "id": "Исследования/Модель 3.md",
+        "x": -310,
+        "y": -134,
+        "fx": -310,
+        "fy": -134
+      },
+      {
+        "id": "Исследования/Модель 4.md",
+        "x": -590,
+        "y": -36,
+        "fx": -590,
+        "fy": -36
+      }
+    ]
+  },
+  "phase3EmbeddedMcpAndTunnel": {
+    "localHealth": {
+      "ok": true,
+      "service": "obsidian-magnetic-miro-mcp",
+      "version": "2.0.0",
+      "transports": [
+        "streamable-http",
+        "sse"
+      ],
+      "authRequired": true,
+      "stats": {
+        "totalRequests": 0,
+        "totalToolCalls": 0,
+        "lastToolName": "",
+        "lastCallTimestamp": 0
+      }
+    },
+    "publicTunnelBase": "https://teams-memphis-leadership-related.trycloudflare.com"
+  },
+  "phase4CloudAgentOverCloudflare": {
+    "connectedViaTryCloudflare": true,
+    "toolsExposed": 20,
+    "arrangedFrames": [
+      {
+        "id": "g-ml",
+        "name": "ML Исследования",
+        "mode": "miro-pinned",
+        "subLayout": "grid",
+        "frameX": -830,
+        "frameY": -149,
+        "frameW": 480,
+        "frameH": 298,
+        "matchedCount": 10
+      },
+      {
+        "id": "g-backend",
+        "name": "Backend & API",
+        "mode": "miro-free",
+        "subLayout": "grid",
+        "frameX": -240,
+        "frameY": -149,
+        "frameW": 480,
+        "frameH": 298,
+        "matchedCount": 10
+      },
+      {
+        "id": "g-design",
+        "name": "Дизайн и UI",
+        "mode": "miro-pinned",
+        "subLayout": "grid",
+        "frameX": 350,
+        "frameY": -149,
+        "frameW": 480,
+        "frameH": 298,
+        "matchedCount": 10
+      }
+    ]
+  }
+}
